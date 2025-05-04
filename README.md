@@ -1,4 +1,4 @@
-# myChat
+# MyBruhChat
 
 ## Описание
 
