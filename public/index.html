@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Discord-like Chat</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            display: flex;
+            height: 100vh;
+            font-family: Arial, sans-serif;
+        }
+        .servers {
+            width: 72px;
+            background: #202225;
+            padding: 12px 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .channels {
+            width: 240px;
+            background: #2f3136;
+            color: #8e9297;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+        .chat {
+            flex: 1;
+            background: #36393f;
+            display: flex;
+            flex-direction: column;
+        }
+        .messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        .message {
+            color: #dcddde;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: flex-start;
+        }
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            background: #5865f2;
+            border-radius: 50%;
+            margin-right: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+        .message-content-wrapper {
+            flex: 1;
+        }
+        .message-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        .username {
+            color: #fff;
+            font-weight: bold;
+            margin-right: 8px;
+        }
+        .timestamp {
+            color: #72767d;
+            font-size: 0.8em;
+        }
+        .message-content {
+            color: #dcddde;
+            word-break: break-word;
+        }
+        .input-area {
+            padding: 20px;
+            background: #40444b;
+        }
+        .message-input {
+            width: 100%;
+            padding: 10px;
+            background: #40444b;
+            border: none;
+            border-radius: 5px;
+            color: #dcddde;
+        }
+        .channel-list {
+            padding: 10px;
+            flex: 1;
+        }
+        .channel {
+            padding: 8px;
+            cursor: pointer;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+        }
+        .channel:hover {
+            background: #34373c;
+        }
+        .channel.active {
+            background: #34373c;
+        }
+        .server-icon {
+            width: 48px;
+            height: 48px;
+            margin: 8px auto;
+            background: #36393f;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #dcddde;
+            cursor: pointer;
+        }
+        .server-icon:hover {
+            background: #5865f2;
+        }
+        .video-container {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 2px;
+            padding: 8px;
+            overflow-y: auto;
+            align-content: flex-start;
+        }
+        .video-element {
+            width: 160px;
+            height: 120px;
+            background: #1e1f22;
+            border-radius: 8px;
+            position: relative;
+            max-width: 160px;
+            max-height: 120px;
+        }
+        .video-element video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+        .video-element .user-info {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 5px 10px;
+            border-bottom-left-radius: 8px;
+            border-bottom-right-radius: 8px;
+            display: flex;
+            align-items: center;
+        }
+        .video-element .user-avatar {
+            width: 24px;
+            height: 24px;
+            background: #5865f2;
+            border-radius: 50%;
+            margin-right: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 12px;
+        }
+        .video-element .username {
+            color: white;
+            font-size: 14px;
+        }
+        .users-in-channel {
+            background: #2f3136;
+            padding: 10px;
+            border-top: 1px solid #202225;
+        }
+        .user {
+            display: flex;
+            align-items: center;
+            padding: 8px;
+            border-radius: 4px;
+        }
+        .user:hover {
+            background: #34373c;
+        }
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            background: #5865f2;
+            border-radius: 50%;
+            margin-right: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+        .typing-indicator {
+            color: #72767d;
+            font-size: 0.8em;
+            margin-top: 5px;
+            font-style: italic;
+            padding: 0 20px;
+        }
+        .message-input:focus {
+            outline: none;
+        }
+        .voice-users {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            padding: 10px;
+        }
+        .voice-user {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100px;
+        }
+        .voice-user-avatar {
+            width: 48px;
+            height: 48px;
+            background: #5865f2;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .voice-user-name {
+            color: #dcddde;
+            font-size: 0.8em;
+            text-align: center;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .voice-indicator {
+            width: 8px;
+            height: 8px;
+            background: #43b581;
+            border-radius: 50%;
+            margin-top: 5px;
+        }
+        .voice-controls {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #2f3136;
+            padding: 10px;
+            border-radius: 8px;
+            display: flex;
+            gap: 10px;
+        }
+        .voice-button {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #36393f;
+            color: #dcddde;
+        }
+        .voice-button:hover {
+            background: #40444b;
+        }
+        .voice-button.active {
+            background: #ed4245;
+        }
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: row;
+            height: 100vh;
+        }
+        .chat {
+            flex: 1;
+            background: #36393f;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+        .server-users-panel {
+            width: 180px;
+            background: #23272a;
+            color: #dcddde;
+            border-left: 1px solid #202225;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            padding: 10px 0;
+            overflow-y: auto;
+        }
+        .server-user {
+            display: flex;
+            align-items: center;
+            padding: 6px 12px;
+            border-radius: 4px;
+            margin-bottom: 2px;
+        }
+        .server-user-avatar {
+            width: 28px;
+            height: 28px;
+            background: #5865f2;
+            border-radius: 50%;
+            margin-right: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        .server-user-name {
+            color: #dcddde;
+            font-size: 15px;
+            font-weight: 500;
+        }
+        .voice-users {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            padding: 6px;
+        }
+        .voice-user {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 64px;
+        }
+        .voice-user-avatar {
+            width: 40px;
+            height: 40px;
+            background: #5865f2;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            margin-bottom: 2px;
+            font-size: 18px;
+        }
+        .voice-user-name {
+            color: #dcddde;
+            font-size: 0.75em;
+            text-align: center;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .voice-users-inline {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            padding: 4px 0 0 16px;
+        }
+        .voice-user-inline {
+            display: flex;
+            align-items: center;
+            margin-bottom: 2px;
+        }
+        .voice-user-avatar-inline {
+            width: 22px;
+            height: 22px;
+            background: #5865f2;
+            border-radius: 50%;
+            margin-right: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 11px;
+        }
+        .voice-user-name-inline {
+            color: #dcddde;
+            font-size: 12px;
+            font-weight: 400;
+            max-width: 90px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .video-element .media-icons {
+            z-index: 10;
+            pointer-events: none;
+        }
+        .dm-list {
+            width: 100%;
+            padding: 0 0 10px 0;
+            border-bottom: 1px solid #23272a;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .dm-tab {
+            width: 48px;
+            height: 48px;
+            background: #23272a;
+            border-radius: 50%;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #dcddde;
+            font-size: 22px;
+            font-weight: bold;
+            cursor: pointer;
+            position: relative;
+        }
+        .dm-tab.active {
+            background: #5865f2;
+            color: #fff;
+        }
+        .dm-tab .dm-tab-tooltip {
+            position: absolute;
+            left: 56px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: #23272a;
+            color: #dcddde;
+            border-radius: 6px;
+            padding: 4px 10px;
+            font-size: 14px;
+            white-space: nowrap;
+            z-index: 100;
+            display: none;
+        }
+        .dm-tab:hover .dm-tab-tooltip {
+            display: block;
+        }
+        .dm-popup {
+            position: absolute;
+            left: 0;
+            top: 48px;
+            background: #23272a;
+            color: #dcddde;
+            border-radius: 6px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            padding: 8px 12px;
+            z-index: 100;
+            font-size: 14px;
+            display: none;
+        }
+        .dm-popup button {
+            background: #5865f2;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            padding: 4px 10px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .dm-popup button:hover {
+            background: #4752c4;
+        }
+    </style>
+</head>
+<body>
+    <div class="servers">
+        <div class="dm-list" id="dm-list"></div>
+    </div>
+    <div class="channels">
+        <div class="channel-list">
+            <div class="channel active" data-channel="general-text">чат</div>
+            <div class="channel" data-channel="general-voice">голосовуха</div>
+            <div id="voice-users-inline"></div>
+        </div>
+        <div class="users-in-channel" id="users-in-channel">
+            <h3>Участники канала</h3>
+        </div>
+    </div>
+    <div class="main-content">
+        <div class="chat">
+            <div class="messages" id="messages"></div>
+            <div class="video-container" id="video-container"></div>
+            <div class="typing-indicator" id="typing-indicator"></div>
+            <div class="input-area">
+                <input type="text" class="message-input" placeholder="Напишите сообщение...">
+            </div>
+        </div>
+        <div class="server-users-panel" id="server-users-panel">
+            <h4 style="margin: 0 0 10px 12px; color: #8e9297;">Пользователи сервера</h4>
+            <div id="server-users-list"></div>
+        </div>
+    </div>
+    <div class="voice-controls" id="voice-controls" style="display: none;">
+        <button class="voice-button" id="mic-button">🎤</button>
+        <button class="voice-button" id="cam-button">📷</button>
+    </div>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://unpkg.com/simple-peer/simplepeer.min.js"></script>
+    <script>
+        const socket = io();
+        const messagesDiv = document.getElementById('messages');
+        const messageInput = document.querySelector('.message-input');
+        const channels = document.querySelectorAll('.channel');
+        const usersInChannel = document.getElementById('users-in-channel');
+        const typingIndicator = document.getElementById('typing-indicator');
+        const voiceControls = document.getElementById('voice-controls');
+        const micButton = document.getElementById('mic-button');
+        const camButton = document.getElementById('cam-button');
+        let currentChannel = 'general-text';
+        let peers = {};
+        let typingTimeout;
+        let currentUsername = '';
+        let localStream = null;
+        let micEnabled = true;
+        let camEnabled = true;
+        let userMediaState = {};
+        let usersMap = new Map(); 
+        let dms = {}; 
+        let currentDm = null;
+        let myUsername = '';
+        const username = prompt('Введите ваше имя:');
+        currentUsername = username;
+        myUsername = username;
+        socket.emit('register', username);
+        socket.on('new-message', (message) => {
+            if (message.channel === currentChannel) {
+                appendMessage(message);
+            }
+        });
+
+        socket.on('channel-history', (messages) => {
+            messagesDiv.innerHTML = '';
+            messages.forEach(appendMessage);
+        });
+        socket.on('users-update', (users) => {
+            updateServerUsers(users);
+            updateVoiceUsersInline(users);
+            if (currentChannel.includes('voice')) {
+                updateVoiceUsers(users);
+            } else {
+                updateTextUsers(users);
+            }
+        });
+
+        function updateServerUsers(users) {
+            const serverUsersList = document.getElementById('server-users-list');
+            serverUsersList.innerHTML = '';
+            users.forEach(user => {
+                const userDiv = document.createElement('div');
+                userDiv.className = 'server-user';
+                userDiv.innerHTML = `
+                    <div class="server-user-avatar">${user.username[0].toUpperCase()}</div>
+                    <span class="server-user-name">${user.username}</span>
+                `;
+                userDiv.style.position = 'relative';
+                userDiv.addEventListener('click', (e) => {
+                    if (user.username === currentUsername) return;
+                    showDmPopup(userDiv, user);
+                });
+                serverUsersList.appendChild(userDiv);
+            });
+        }
+
+        function updateTextUsers(users) {
+            if (currentDm) {
+                usersInChannel.innerHTML = `<h3 style="font-size:1em;">Участники лички</h3>`;
+                const list = document.createElement('div');
+                list.className = 'dm-users-list';
+                list.innerHTML += `
+                    <div class="user">
+                        <div class="user-avatar">${myUsername[0].toUpperCase()}</div>
+                        <span>${myUsername}</span>
+                    </div>
+                `;
+                list.innerHTML += `
+                    <div class="user">
+                        <div class="user-avatar">${currentDm[0].toUpperCase()}</div>
+                        <span>${currentDm}</span>
+                    </div>
+                `;
+                usersInChannel.appendChild(list);
+                return;
+            }
+            usersInChannel.innerHTML = '<h3>Участники канала</h3>';
+            users.forEach(user => {
+                if (user.currentChannel === currentChannel) {
+                    const userDiv = document.createElement('div');
+                    userDiv.className = 'user';
+                    userDiv.innerHTML = `
+                        <div class="user-avatar">${user.username[0].toUpperCase()}</div>
+                        <span>${user.username}</span>
+                    `;
+                    usersInChannel.appendChild(userDiv);
+                }
+            });
+        }
+
+        function updateVoiceUsers(users) {
+            usersInChannel.innerHTML = '<h3 style="font-size:1em;">Участники голосового</h3><div class="voice-users"></div>';
+            const voiceUsersContainer = usersInChannel.querySelector('.voice-users');
+            users.forEach(user => {
+                if (user.currentChannel === currentChannel) {
+                    const userDiv = document.createElement('div');
+                    userDiv.className = 'voice-user';
+                    userDiv.innerHTML = `
+                        <div class="voice-user-avatar">${user.username[0].toUpperCase()}</div>
+                        <div class="voice-user-name">${user.username}</div>
+                    `;
+                    voiceUsersContainer.appendChild(userDiv);
+                }
+            });
+        }
+
+        function updateVoiceUsersInline(users) {
+            const container = document.getElementById('voice-users-inline');
+            container.innerHTML = '';
+            if (!currentChannel.includes('voice')) return;
+            const voiceUsers = users.filter(user => user.currentChannel === currentChannel);
+            if (voiceUsers.length === 0) return;
+            const list = document.createElement('div');
+            list.className = 'voice-users-inline';
+            voiceUsers.forEach(user => {
+                const userDiv = document.createElement('div');
+                userDiv.className = 'voice-user-inline';
+                userDiv.innerHTML = `
+                    <div class="voice-user-avatar-inline">${user.username[0].toUpperCase()}</div>
+                    <span class="voice-user-name-inline">${user.username}</span>
+                `;
+                list.appendChild(userDiv);
+            });
+            container.appendChild(list);
+        }
+        socket.on('typing', (username) => {
+            if (username !== currentUsername) {
+                typingIndicator.textContent = `${username} печатает...`;
+                clearTimeout(typingTimeout);
+                typingTimeout = setTimeout(() => {
+                    typingIndicator.textContent = '';
+                }, 3000);
+            }
+        });
+
+        function appendMessage(message) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message';
+            messageDiv.innerHTML = `
+                <div class="message-avatar">${message.username[0].toUpperCase()}</div>
+                <div class="message-content-wrapper">
+                    <div class="message-header">
+                        <span class="username">${message.username}</span>
+                        <span class="timestamp">${new Date(message.timestamp).toLocaleTimeString()}</span>
+                    </div>
+                    <div class="message-content">${message.content}</div>
+                </div>
+            `;
+            messagesDiv.appendChild(messageDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && messageInput.value.trim()) {
+                if (currentDm) {
+                    if (currentDm === myUsername) return; 
+                    const msg = {
+                        to: currentDm,
+                        content: messageInput.value,
+                        timestamp: new Date(),
+                        username: myUsername
+                    };
+                    socket.emit('dm-message', msg);
+                } else if (currentChannel) {
+                    socket.emit('send-message', {
+                        content: messageInput.value,
+                        channel: currentChannel
+                    });
+                }
+                messageInput.value = '';
+                typingIndicator.textContent = '';
+            }
+        });
+        messageInput.addEventListener('input', () => {
+            socket.emit('typing', currentUsername);
+        });
+        channels.forEach(channel => {
+            channel.addEventListener('click', () => {
+                channels.forEach(c => c.classList.remove('active'));
+                channel.classList.add('active');
+                currentChannel = channel.dataset.channel;
+                currentDm = null;
+                document.querySelector('.channel-list').style.display = 'block';
+                if (currentChannel.includes('voice')) {
+                    document.querySelector('.messages').style.display = 'none';
+                    document.querySelector('.input-area').style.display = 'none';
+                    typingIndicator.style.display = 'none';
+                    document.getElementById('video-container').style.display = 'grid';
+                    voiceControls.style.display = 'flex';
+                    setupVoiceChannel();
+                } else {
+                    document.querySelector('.messages').style.display = 'block';
+                    document.querySelector('.input-area').style.display = 'block';
+                    typingIndicator.style.display = 'block';
+                    document.getElementById('video-container').style.display = 'none';
+                    voiceControls.style.display = 'none';
+                    if (localStream) {
+                        localStream.getTracks().forEach(track => track.stop());
+                        localStream = null;
+                    }
+                    document.getElementById('video-container').innerHTML = '';
+                    socket.emit('join-channel', 'test-server', currentChannel);
+                }
+            });
+        });
+        micButton.addEventListener('click', () => {
+            micEnabled = !micEnabled;
+            if (localStream) {
+                localStream.getAudioTracks().forEach(track => track.enabled = micEnabled);
+            }
+            micButton.textContent = micEnabled ? '🎤' : '🔇';
+            socket.emit('media-state', { mic: micEnabled, cam: camEnabled });
+        });
+        camButton.addEventListener('click', () => {
+            camEnabled = !camEnabled;
+            if (localStream) {
+                localStream.getVideoTracks().forEach(track => track.enabled = camEnabled);
+            }
+            camButton.textContent = camEnabled ? '📷' : '🚫';
+            socket.emit('media-state', { mic: micEnabled, cam: camEnabled });
+        });
+        socket.on('media-state-update', (data) => {
+            userMediaState[data.id] = { mic: data.mic, cam: data.cam };
+            updateMediaIcons();
+        });
+
+        function updateMediaIcons() {
+            Object.keys(userMediaState).forEach(id => {
+                const videoEl = document.getElementById(`video-${id}`);
+                let icon = '';
+                if (userMediaState[id].cam === false) {
+                    icon += '<span style="position:absolute;top:4px;right:4px;font-size:18px;">🚫</span>';
+                }
+                if (userMediaState[id].mic === false) {
+                    icon += '<span style="position:absolute;bottom:4px;right:4px;font-size:18px;">🔇</span>';
+                }
+                if (videoEl) {
+                    let old = videoEl.querySelector('.media-icons');
+                    if (old) old.remove();
+                    if (icon) {
+                        const div = document.createElement('div');
+                        div.className = 'media-icons';
+                        div.style.position = 'absolute';
+                        div.style.top = 0;
+                        div.style.left = 0;
+                        div.style.width = '100%';
+                        div.style.height = '100%';
+                        div.style.pointerEvents = 'none';
+                        div.innerHTML = icon;
+                        videoEl.appendChild(div);
+                    }
+                }
+            });
+        }
+
+        function setupVoiceChannel() {
+            Object.values(peers).forEach(peer => peer.destroy());
+            peers = {};
+            usersMap = new Map();
+            document.getElementById('video-container').innerHTML = '';
+            socket.off('room-users');
+            socket.off('new-user');
+            socket.off('signal');
+            socket.off('user-disconnected');
+
+            navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+                .then(stream => {
+                    localStream = stream;
+                    socket.emit('join-room', currentChannel, socket.id);
+                    if (!document.getElementById(`video-${socket.id}`)) {
+                        addVideoElement(socket.id, stream, currentUsername);
+                    }
+                    usersMap.set(socket.id, currentUsername);
+                    socket.emit('get-room-users', currentChannel);
+                    
+                    socket.on('room-users', (users) => {
+                        users.forEach(user => {
+                            usersMap.set(user.id, user.username);
+                            if (user.id !== socket.id && !peers[user.id]) {
+                                const peer = new SimplePeer({
+                                    initiator: true,
+                                    trickle: false,
+                                    stream: localStream
+                                });
+                                setupPeer(peer, user.id);
+                                peers[user.id] = peer;
+                            }
+                        });
+                    });
+                    socket.on('new-user', (user) => {
+                        usersMap.set(user.id, user.username);
+                        if (user.id !== socket.id && !peers[user.id]) {
+                            const peer = new SimplePeer({
+                                initiator: false,
+                                trickle: false,
+                                stream: localStream
+                            });
+                            setupPeer(peer, user.id);
+                            peers[user.id] = peer;
+                        }
+                    });
+
+                    socket.on('signal', data => {
+                        if (data.from !== socket.id && peers[data.from]) {
+                            peers[data.from].signal(data.signal);
+                        }
+                    });
+
+                    socket.on('user-disconnected', userId => {
+                        if (peers[userId]) {
+                            peers[userId].destroy();
+                            delete peers[userId];
+                        }
+                        removeVideoElement(userId);
+                        usersMap.delete(userId);
+                    });
+                    socket.emit('media-state', { mic: micEnabled, cam: camEnabled });
+                    setTimeout(updateMediaIcons, 200); 
+                })
+                .catch(err => console.error('Ошибка доступа к медиа:', err));
+        }
+
+        function setupPeer(peer, remoteId) {
+            peer.on('signal', signal => {
+                socket.emit('signal', { target: remoteId, signal });
+            });
+            peer.on('stream', stream => {
+                const username = usersMap.get(remoteId) || 'Unknown';
+                addVideoElement(remoteId, stream, username);
+            });
+        }
+
+        function addVideoElement(userId, stream, username) {
+            const videoContainer = document.getElementById('video-container');
+            if (document.getElementById(`video-${userId}`)) return; 
+            const videoElement = document.createElement('div');
+            videoElement.className = 'video-element';
+            videoElement.id = `video-${userId}`;
+            
+            const video = document.createElement('video');
+            video.autoplay = true;
+            video.playsInline = true;
+            video.srcObject = stream;
+            
+            const userInfo = document.createElement('div');
+            userInfo.className = 'user-info';
+            userInfo.innerHTML = `
+                <div class="user-avatar">${username[0].toUpperCase()}</div>
+                <div class="username">${username}</div>
+            `;
+            
+            videoElement.appendChild(video);
+            videoElement.appendChild(userInfo);
+            videoContainer.appendChild(videoElement);
+            updateMediaIcons(); 
+        }
+
+        function removeVideoElement(userId) {
+            const videoElement = document.getElementById(`video-${userId}`);
+            if (videoElement) {
+                videoElement.remove();
+            }
+        }
+
+        function showDmPopup(target, user) {
+            let popup = target.querySelector('.dm-popup');
+            if (!popup) {
+                popup = document.createElement('div');
+                popup.className = 'dm-popup';
+                target.appendChild(popup);
+            }
+            popup.innerHTML = `<button id="dm-start-btn">Написать в личку</button>`;
+            popup.style.display = 'block';
+            document.getElementById('dm-start-btn').onclick = () => {
+                openDm(user);
+                popup.style.display = 'none';
+            };
+            document.addEventListener('click', function handler(e) {
+                if (!popup.contains(e.target) && e.target !== target) {
+                    popup.style.display = 'none';
+                    document.removeEventListener('click', handler);
+                }
+            });
+        }
+
+        function openDm(user) {
+            if (!dms[user.username]) {
+                dms[user.username] = { username: user.username, messages: [] };
+            }
+            currentDm = user.username;
+            renderDmTabs();
+            switchToDm(user.username);
+        }
+
+        function renderDmTabs() {
+            const dmList = document.getElementById('dm-list');
+            dmList.innerHTML = '';
+            const backTab = document.createElement('div');
+            backTab.className = 'dm-tab';
+            backTab.textContent = '🏠';
+            backTab.title = 'Вернуться к серверу';
+            backTab.onclick = () => {
+                currentDm = null;
+                document.querySelector('.channel-list').style.display = 'block';
+                renderDmTabs();
+                renderServerMessages();
+            };
+            dmList.appendChild(backTab);
+            Object.keys(dms).forEach(username => {
+                const tab = document.createElement('div');
+                tab.className = 'dm-tab' + (currentDm === username ? ' active' : '');
+                tab.textContent = username[0].toUpperCase();
+                const tooltip = document.createElement('div');
+                tooltip.className = 'dm-tab-tooltip';
+                tooltip.textContent = username;
+                tab.appendChild(tooltip);
+                tab.onclick = () => {
+                    currentDm = username;
+                    renderDmTabs();
+                    switchToDm(username);
+                };
+                dmList.appendChild(tab);
+            });
+        }
+
+        function switchToDm(username) {
+            currentChannel = null;
+            document.querySelectorAll('.channel').forEach(c => c.classList.remove('active'));
+            document.querySelector('.channel-list').style.display = 'none';
+            renderDmMessages(username);
+        }
+
+        function renderDmMessages(username) {
+            messagesDiv.innerHTML = '';
+            dms[username].messages.forEach(appendDmMessage);
+        }
+
+        function appendDmMessage(msg) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message';
+            messageDiv.innerHTML = `
+                <div class="message-avatar">${msg.username[0].toUpperCase()}</div>
+                <div class="message-content-wrapper">
+                    <div class="message-header">
+                        <span class="username">${msg.username}</span>
+                        <span class="timestamp">${new Date(msg.timestamp).toLocaleTimeString()}</span>
+                    </div>
+                    <div class="message-content">${msg.content}</div>
+                </div>
+            `;
+            messagesDiv.appendChild(messageDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        function renderServerMessages() {
+            if (currentChannel) {
+                socket.emit('join-channel', 'test-server', currentChannel);
+            } else {
+                currentChannel = 'general-text';
+                socket.emit('join-channel', 'test-server', currentChannel);
+            }
+        }
+        socket.on('dm-message', (msg) => {
+            const other = msg.username === myUsername ? msg.to : msg.username;
+            if (other === myUsername) return; 
+            if (!dms[other]) {
+                dms[other] = { username: other, messages: [] };
+            }
+            dms[other].messages.push(msg);
+            if (currentDm !== other) {
+                currentDm = other;
+                renderDmTabs();
+                switchToDm(other);
+            } else {
+                appendDmMessage(msg);
+            }
+        });
+    </script>
+</body>
+</html> 
